@@ -10,7 +10,7 @@
 			"distribution": "internal"
 		},
 		"preview": {
-                        "gradleCommand": ":app:assembleRelease --stacktrace"
+                        "gradleCommand": ":app:assembleRelease --stacktrace",
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
