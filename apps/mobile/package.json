@@ -117,7 +117,8 @@
     "preset": "jest-expo"
   },
     "private": true,
-  "overrides": {
-    "expo-location": "19.0.8"
+   "overrides": {
+  "react-native-mmkv": "^3.3.0",
+ "expo-location": "19.0.8"
   }
 }
