@@ -6,7 +6,7 @@ import { authRequest } from '@/lib/shared-session';
 
 type Mode = 'login' | 'register' | 'forgot';
 function CompactLogin({ title, text, children }: PropsWithChildren<{ title: string; text: string; icon?: string }>) {
-  return <View style={{ gap: 12, padding: 20, backgroundColor: C.white, borderRadius: 18, borderWidth: 1, borderColor: C.line, width: '100%', maxWidth: 440, alignSelf: 'center', marginVertical: 14 }}><T bold style={{ fontSize: 23, lineHeight: 31, textAlign: 'center' }}>{title}</T><T style={{ fontSize: 13, color: C.muted, textAlign: 'center' }}>{text}</T>{children}</View>;
+  return <View style={{ gap: 14, padding: 24, backgroundColor: C.white, borderRadius: 22, borderWidth: 1, borderColor: C.line, width: '100%', maxWidth: 460, alignSelf: 'center', marginVertical: 18 }}><View style={{ alignSelf: 'center', width: 52, height: 52, borderRadius: 17, backgroundColor: C.mint, alignItems: 'center', justifyContent: 'center' }}><Icon name="person-outline" size={24} color={C.green} /></View><T bold style={{ fontSize: 24, lineHeight: 32, textAlign: 'center' }}>{title}</T><T style={{ fontSize: 14, color: C.muted, textAlign: 'center' }}>{text}</T>{children}</View>;
 }
 
 function PasswordField({ label, value, onChangeText, placeholder, visible, onToggle }: {
