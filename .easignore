@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.expo/
+dist/
+dist-server/
+web-dist/
+.webdev/
+*.log
+*.zip
+.DS_Store
