@@ -12,7 +12,7 @@ export function Brand({ small = false }: { small?: boolean }) {
     <View style={{ backgroundColor: C.green, width: small ? 40 : 46, height: small ? 40 : 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={29} height={29} viewBox="0 0 40 40"><Path d="M7 23h26l-3-8c-.7-2-2-3-4-3H15c-2 0-3.5 1-4 3l-4 8Zm-1 0v8m28-8v8M8 28h24" stroke="#FAF7EF" strokeWidth="2.8" strokeLinecap="round" fill="none" /><Circle cx="29" cy="8" r="2.1" fill={C.gold} /></Svg>
     </View>
-    <View><T bold style={{ fontSize: small ? 25 : 29, lineHeight: 32, color: C.green }}>سيّارة.</T><T style={{ fontSize: 10, lineHeight: 14, color: C.muted }}>سوق السيارات، ببساطة</T></View>
+    <View><T bold style={{ fontSize: small ? 25 : 29, lineHeight: 32, color: C.green }}>سيارتي</T><T style={{ fontSize: 10, lineHeight: 14, color: C.muted }}>سوق السيارات في الكويت</T></View>
   </View>;
 }
 
@@ -24,9 +24,9 @@ export function Shell({ children, title, subtitle, titleActions, back = false, s
   const wide = width >= 760;
   const nav = [
     { path: '/', text: 'الرئيسية', icon: 'home-outline' },
+    { path: '/publish', text: 'أعلن', icon: 'add' },
     { path: '/favorites', text: 'المفضلة', icon: 'heart-outline' },
-    { path: '/publish', text: 'أعلن مجاناً', icon: 'add' },
-    { path: '/contact', text: 'تواصل معنا', icon: 'chatbubbles-outline' },
+    { path: '/contact', text: 'تواصل', icon: 'chatbubbles-outline' },
   ];
   const activePath = path === '/(tabs)' ? '/' : path;
   const isActive = (itemPath: string) => activePath === itemPath;
@@ -37,6 +37,7 @@ export function Shell({ children, title, subtitle, titleActions, back = false, s
         <Pressable onPress={() => router.push('/')} accessibilityLabel="سيّارة الرئيسية"><Brand small /></Pressable>
         {wide && <View style={[row, styles.desktopNav]}>{nav.filter(item => item.path !== '/publish').map(item => <Pressable key={item.path} accessibilityRole="button" onPress={() => router.push(item.path as any)} style={styles.desktopNavItem}><T bold={isActive(item.path)} style={{ color: isActive(item.path) ? C.green : C.muted, fontSize: 14 }}>{item.text}</T>{isActive(item.path) && <View style={styles.activeMarker} />}</Pressable>)}</View>}
         <View style={[row, { gap: 9 }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="المفضلة" onPress={() => router.push('/favorites')} style={[styles.loginButton, { minHeight: 42, paddingHorizontal: 10 }]}><Icon name="heart-outline" size={18} color={C.green} /></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={user ? 'صفحتي الشخصية' : 'تسجيل الدخول'} onPress={() => router.push(user ? '/account' : '/login')} style={[styles.loginButton, { minHeight: 42 }]}>
             <Icon name={user ? 'person-outline' : 'log-in-outline'} size={17} color={C.green} />
             {wide && <T bold style={{ color: C.green, fontSize: 13 }}>{user ? 'حسابي' : 'تسجيل الدخول'}</T>}
@@ -72,9 +73,9 @@ export function Shell({ children, title, subtitle, titleActions, back = false, s
       {!wide && <View style={[styles.nav, { paddingBottom: Math.max(insets.bottom, 6) }]}>{nav.map((item, index) => {
         const active = isActive(item.path);
         return <Pressable key={item.path} accessibilityRole="tab" accessibilityState={{ selected: active }} accessibilityLabel={item.text} onPress={() => router.push(item.path as any)} style={{ flex: 1, alignItems: 'center', gap: 3 }}>
-          <View style={index === 2 ? styles.addButton : { height: 27, justifyContent: 'center', alignItems: 'center' }}><Icon name={active && index === 0 ? 'home' : item.icon as any} size={index === 2 ? 22 : 20} color={index === 2 ? C.white : active ? C.green : '#929990'} /></View>
-          <T bold={active || index === 2} style={{ fontSize: 10, color: active || index === 2 ? C.green : C.muted, lineHeight: 15 }}>{item.text}</T>
-          {active && index !== 2 && <View style={styles.activeMarker} />}
+          <View style={index === 1 ? styles.addButton : { height: 27, justifyContent: 'center', alignItems: 'center' }}><Icon name={active && index === 0 ? 'home' : item.icon as any} size={index === 1 ? 22 : 20} color={index === 1 ? C.white : active ? C.green : '#929990'} /></View>
+          <T bold={active || index === 1} style={{ fontSize: 10, color: active || index === 1 ? C.green : C.muted, lineHeight: 15 }}>{item.text}</T>
+          {active && index !== 1 && <View style={styles.activeMarker} />}
         </Pressable>;
       })}</View>}
     </View>
@@ -84,18 +85,18 @@ export function Shell({ children, title, subtitle, titleActions, back = false, s
 export { AccountLoginGate as LoginGate } from './login-gate';
 
 const styles = StyleSheet.create({
-  background: { flex: 1, backgroundColor: '#E8E6DF', alignItems: 'center' },
+  background: { flex: 1, backgroundColor: '#E9EEF9', alignItems: 'center' },
   frame: { flex: 1, width: '100%', maxWidth: 1280, backgroundColor: C.bg, overflow: 'hidden', borderLeftWidth: Platform.OS === 'web' ? 1 : 0, borderRightWidth: Platform.OS === 'web' ? 1 : 0, borderColor: '#E0DED6' },
   header: { minHeight: 76, flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 14, backgroundColor: C.white, borderBottomWidth: 1, borderColor: C.line },
   desktopNav: { gap: 28, alignSelf: 'stretch' },
   desktopNavItem: { justifyContent: 'center', alignItems: 'center', gap: 7 },
-  activeMarker: { height: 3, width: 18, backgroundColor: C.gold, borderRadius: 3 },
+  activeMarker: { height: 3, width: 18, backgroundColor: C.green, borderRadius: 3 },
   loginButton: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: C.mint, borderWidth: 1, borderColor: '#D8E3D8' },
   headerPost: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'center', gap: 4, paddingHorizontal: 13, paddingVertical: 8, borderRadius: 12, backgroundColor: C.green },
   heroBanner: { overflow: 'hidden', borderRadius: 22, backgroundColor: C.dark },
   heroShade: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(17,28,22,.62)' },
   heroContent: { flex: 1, justifyContent: 'center', alignItems: 'flex-end' },
-  heroPrimary: { flexDirection: 'row-reverse', alignItems: 'center', gap: 6, backgroundColor: '#E4C58D', borderRadius: 11, paddingHorizontal: 14, paddingVertical: 10 },
+  heroPrimary: { flexDirection: 'row-reverse', alignItems: 'center', gap: 6, backgroundColor: C.gold, borderRadius: 11, paddingHorizontal: 14, paddingVertical: 10 },
   heroSecondary: { flexDirection: 'row-reverse', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,.46)', borderRadius: 11, paddingHorizontal: 14, paddingVertical: 9 },
   round: { width: 42, height: 42, borderRadius: 14, backgroundColor: C.white, borderWidth: 1, borderColor: C.line, justifyContent: 'center', alignItems: 'center' },
   nav: { flexDirection: 'row-reverse', backgroundColor: C.white, borderTopWidth: 1, borderColor: C.line, paddingTop: 8, paddingHorizontal: 10, gap: 4 },

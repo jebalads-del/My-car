@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, TextInput, Modal, ScrollView, StyleSheet, ActivityIndicator, TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-export const C = { green: '#244536', dark: '#182820', mint: '#EAF1EB', gold: '#A8844C', goldLight: '#F6F0E4', bg: '#F6F5F1', white: '#FFFFFF', text: '#222B25', muted: '#727A71', line: '#E6E5DE', red: '#B44343' };
+export const C = { green: '#1F4FD1', dark: '#122653', mint: '#EEF3FF', gold: '#E6B94F', goldLight: '#FFF5D8', bg: '#F6F8FE', white: '#FFFFFF', text: '#17264A', muted: '#69748E', line: '#E1E7F2', red: '#B44343' };
 export const row = { flexDirection: 'row-reverse' as const, alignItems: 'center' as const };
 export function T({ children, style, bold = false, ...props }: any) { return <Text {...props} style={[{ fontFamily: bold ? 'Tajawal-Bold' : 'Tajawal', color: C.text, textAlign: 'right', fontSize: 15, lineHeight: 22, writingDirection: 'rtl' }, style]}>{children}</Text>; }
 export function Icon({ name, size = 22, color = C.green }: { name: React.ComponentProps<typeof Ionicons>['name']; size?: number; color?: string }) { return <Ionicons name={name} size={size} color={color} />; }
