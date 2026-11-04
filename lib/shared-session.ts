@@ -5,6 +5,7 @@ import { getApiBaseUrl } from '../constants/oauth';
 
 const REFRESH_KEY = 'sayarty_supabase_refresh';
 const EXPIRY_KEY = 'sayarty_supabase_expiry';
+const GOOGLE_VERIFIER_KEY = 'sayarty_google_verifier';
 let refreshInFlight: Promise<boolean> | null = null;
 
 function browserOriginHeaders(): Record<string, string> {
@@ -105,6 +106,31 @@ export async function authRequest(path: string, body?: Record<string, unknown>, 
   if (!response.ok) throw new AuthRequestError(result.error || result.message || 'تعذّر الاتصال بالخادم', response.status, result.code || 'AUTH_REQUEST_FAILED');
   await saveSharedSession(result);
   return result;
+}
+
+export async function startGoogleLogin(): Promise<void> {
+  const redirectUri = Platform.OS === 'web'
+    ? `${window.location.origin}/google-callback`
+    : 'manus216154127124529://google-callback';
+  const result = await authRequest('/api/auth/google/prepare', { redirectUri });
+  if (Platform.OS === 'web') {
+    window.sessionStorage.setItem(GOOGLE_VERIFIER_KEY, result.verifier);
+    window.location.assign(result.url);
+  } else {
+    await SecureStore.setItemAsync(GOOGLE_VERIFIER_KEY, result.verifier);
+    const Linking = await import('expo-linking');
+    await Linking.openURL(result.url);
+  }
+}
+
+export async function completeGoogleLogin(code: string): Promise<void> {
+  const verifier = Platform.OS === 'web'
+    ? window.sessionStorage.getItem(GOOGLE_VERIFIER_KEY)
+    : await SecureStore.getItemAsync(GOOGLE_VERIFIER_KEY);
+  if (!verifier) throw new Error('انتهت محاولة تسجيل الدخول. حاول مجدداً.');
+  if (Platform.OS === 'web') window.sessionStorage.removeItem(GOOGLE_VERIFIER_KEY);
+  else await SecureStore.deleteItemAsync(GOOGLE_VERIFIER_KEY);
+  await authRequest('/api/auth/google/exchange', { code, verifier });
 }
 
 /** Confirm live authentication before the UI treats login/verification as successful. */
