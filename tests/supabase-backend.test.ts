@@ -87,6 +87,34 @@ describe("Supabase backend integration", () => {
     expect(res.cookie).not.toHaveBeenCalled();
   });
 
+  it('prepares a Google PKCE authorization request', async () => {
+    const routes = new Map<string, Function>();
+    registerSupabaseAuthRoutes({ get: vi.fn(), post: (path: string, fn: Function) => routes.set(path, fn) } as any);
+    const res: any = { json: vi.fn(), setHeader: vi.fn(), status: vi.fn() }; res.status.mockReturnValue(res);
+    await routes.get('/api/auth/google/prepare')!({ body: { redirectUri: 'https://example.test/google-callback', platform: 'web' } }, res);
+    const { url, verifier } = res.json.mock.calls[0][0];
+    const authorize = new URL(url);
+    const { createHash } = await import('node:crypto');
+    expect(authorize.searchParams.get('provider')).toBe('google');
+    expect(authorize.searchParams.get('code_challenge_method')).toBe('s256');
+    expect(authorize.searchParams.get('code_challenge')).toBe(createHash('sha256').update(verifier).digest('base64url'));
+    expect(authorize.searchParams.get('redirect_to')).toBe('https://example.test/google-callback');
+  });
+
+  it('only issues a Google session after checking the user profile', async () => {
+    const routes = new Map<string, Function>();
+    registerSupabaseAuthRoutes({ get: vi.fn(), post: (path: string, fn: Function) => routes.set(path, fn) } as any);
+    installFetch(url => url.includes('/auth/v1/token')
+      ? json({ access_token: 'mock-access', refresh_token: 'mock-refresh', expires_in: 3600, user: { id: profile.id } })
+      : json([{ ...profile, status: 'blocked' }]));
+    const res: any = { json: vi.fn(), cookie: vi.fn(), setHeader: vi.fn(), status: vi.fn() }; res.status.mockReturnValue(res);
+    await routes.get('/api/auth/google/exchange')!({ body: { code: 'auth-code', verifier: 'a'.repeat(43), platform: 'native' }, headers: {} }, res);
+    expect(JSON.parse((fetch as any).mock.calls[0][1].body)).toEqual({ auth_code: 'auth-code', code_verifier: 'a'.repeat(43) });
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'ACCOUNT_BLOCKED' }));
+    expect(res.cookie).not.toHaveBeenCalled();
+  });
+
   it("rejects an email-only admin claim when the current users row is not admin", async () => {
     installFetch((url) => {
       if (url.includes("/auth/v1/user")) return json({ id: profile.id, email: "admin@sayarty.store" });

@@ -1,11 +1,12 @@
 import type { Express, Request, Response } from "express";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { readSupabaseCookie, supabaseCookieNames, supabaseCookieOptions } from "./supabase-cookies";
 import {
   SupabaseRequestError,
   isSupabaseConfigured,
+  getSupabaseConfig,
   supabaseAuthJson,
   supabaseFetch,
   supabaseGetUser,
@@ -199,6 +200,46 @@ export function registerSupabaseAuthRoutes(app: Express): void {
     res.setHeader('Cache-Control', 'no-store');
     res.clearCookie(supabaseCookieNames(req).probe, cookieOptions(req));
     res.json({ persisted: Boolean(persisted) });
+  });
+
+  app.post("/api/auth/google/prepare", (req, res) => {
+    const parsed = z.object({ redirectUri: z.string().url().max(2048), platform: z.enum(['web', 'native']) }).strict().safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ error: 'رابط العودة غير صالح' }); return; }
+    const redirect = new URL(parsed.data.redirectUri);
+    const validWeb = parsed.data.platform === 'web' && ['https:', 'http:'].includes(redirect.protocol) && redirect.pathname === '/google-callback' && !redirect.search && !redirect.hash && !redirect.username && !redirect.password;
+    const validNative = parsed.data.platform === 'native' && redirect.protocol === 'manus216154127124529:' && redirect.hostname === 'google-callback' && (redirect.pathname === '' || redirect.pathname === '/') && !redirect.search && !redirect.hash;
+    if (!validWeb && !validNative) { res.status(400).json({ error: 'رابط العودة غير صالح' }); return; }
+    try {
+      const verifier = randomBytes(32).toString('base64url');
+      const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const url = new URL('/auth/v1/authorize', getSupabaseConfig().url);
+      url.searchParams.set('provider', 'google');
+      url.searchParams.set('redirect_to', redirect.toString());
+      url.searchParams.set('code_challenge', challenge);
+      url.searchParams.set('code_challenge_method', 's256');
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({ url: url.toString(), verifier });
+    } catch (error) {
+      const result = authError(error);
+      res.status(result.status).json({ error: result.error, code: result.code });
+    }
+  });
+
+  app.post("/api/auth/google/exchange", async (req, res) => {
+    const parsed = z.object({ code: z.string().min(1).max(2048), verifier: z.string().regex(/^[A-Za-z0-9_-]{43,128}$/), platform: z.enum(['web', 'native']) }).strict().safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ error: 'تعذّر التحقق من تسجيل الدخول عبر Google' }); return; }
+    try {
+      const session = await supabaseJson<SupabaseSession>('/auth/v1/token?grant_type=pkce', {
+        method: 'POST', body: JSON.stringify({ auth_code: parsed.data.code, code_verifier: parsed.data.verifier }),
+      });
+      const identity = await identityFromSession(session);
+      setSessionCookies(req, res, session);
+      res.setHeader('Cache-Control', 'no-store');
+      res.json(nativeSessionBody(session, identity.user, parsed.data.platform));
+    } catch (error) {
+      const result = authError(error);
+      res.status(result.status).json({ error: result.error, code: result.code });
+    }
   });
 
   app.post("/api/auth/local-login", async (req, res) => {
